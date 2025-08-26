@@ -142,15 +142,15 @@
           const x1 = block1.dataset.speedX, y1 = block1.dataset.speedY;
           const x2 = block2.dataset.speedX, y2 = block2.dataset.speedY;
           let a, b;
-          if (x1 == 1  && y1 ==  0) { a = 1 } else
-          if (x1 == 0  && y1 ==  1) { a = 2 } else
-          if (x1 == -1 && y1 ==  0) { a = 3 } else
-          if (x1 == 0  && y1 == -1) { a = 4 }
+          if (x1 >= 0 && y1 == 0) { a = 1 } else
+          if (x1 == 0 && y1 >= 0) { a = 2 } else
+          if (x1 <= 0 && y1 == 0) { a = 3 } else
+          if (x1 == 0 && y1 <= 0) { a = 4 }
 
-          if (x2 == 1  && y2 ==  0) { b = 1 } else
-          if (x2 == 0  && y2 ==  1) { b = 2 } else
-          if (x2 == -1 && y2 ==  0) { b = 3 } else
-          if (x2 == 0  && y2 == -1) { b = 4 }
+          if (x2 >= 0 && y2 == 0) { b = 1 } else
+          if (x2 == 0 && y2 >= 0) { b = 2 } else
+          if (x2 <= 0 && y2 == 0) { b = 3 } else
+          if (x2 == 0 && y2 <= 0) { b = 4 }
 
           if (a - b == 1 || a - b == -3) {
             return -90
@@ -176,7 +176,6 @@
         let score = 0;
         // Functions
         function placeFood() {
-          let underBlock = false;
           let foodX = getRandomInt(0, fieldX);
           let foodY = getRandomInt(0, fieldY);
           const food = document.createElement('div');
@@ -265,7 +264,7 @@
           switch (keyEvent.key) {
             case 'k':
             case 'ArrowUp':
-              if (head.dataset.speedY != 1 && !turning) {
+              if (head.dataset.speedY <= 0 && !turning) {
                 head.dataset.speedX = 0;
                 head.dataset.speedY = -1;
                 turning ++;
@@ -273,7 +272,7 @@
               break;
             case 'j':
             case 'ArrowDown':
-              if (head.dataset.speedY != -1 && !turning) {
+              if (head.dataset.speedY >= 0 && !turning) {
                 head.dataset.speedX = 0;
                 head.dataset.speedY = 1;
                 turning ++;
@@ -281,7 +280,7 @@
               break;
             case 'h':
             case 'ArrowLeft':
-              if (head.dataset.speedX != 1 && !turning) {
+              if (head.dataset.speedX <= 0 && !turning) {
                 head.dataset.speedX = -1;
                 head.dataset.speedY = 0;
                 turning ++;
@@ -289,7 +288,7 @@
               break;
             case 'l':
             case 'ArrowRight':
-              if (head.dataset.speedX != -1 && !turning) {
+              if (head.dataset.speedX >= 0 && !turning) {
                 head.dataset.speedX = 1;
                 head.dataset.speedY = 0;
                 turning ++;
