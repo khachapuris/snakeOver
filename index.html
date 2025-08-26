@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Snake over!</title>
+    <style>
+      :root {
+        --block-size: 30px;
+        --field-x: 30;
+        --field-y: 30;
+        --speed: 90ms;
+        --bg-color: midnightblue;
+      }
+      body {
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: var(--bg-color);
+      }
+      .game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 90;
+        color: white;
+        font-size: 10vh;
+        margin: 0;
+        display: none;
+        font-family: monospace;
+        text-shadow: -5px 0 var(--bg-color), 0 5px var(--bg-color), 5px 0 var(--bg-color), 0 -5px var(--bg-color);
+      }
+      .score-text {
+        color: lightskyblue;
+        font-size: 20px;
+        margin-top: -40px;
+        font-family: monospace;
+      }
+      .field {
+        position: relative;
+        width: calc(var(--block-size) * var(--field-x));
+        height: calc(var(--block-size) * var(--field-y));
+        margin: 0;
+        padding: 0;
+        --c: slateblue;
+        border: 1px solid var(--c);
+        background:
+          repeating-linear-gradient(
+            to right,
+            var(--c), var(--c) 1px,
+            transparent 1px, transparent calc(var(--block-size) - 1px),
+            var(--c) calc(var(--block-size) - 1px), var(--c) var(--block-size)
+          ),
+          repeating-linear-gradient(
+            to bottom,
+            var(--c), var(--c) 1px,
+            transparent 1px, transparent calc(var(--block-size) - 1px),
+            var(--c) calc(var(--block-size) - 1px), var(--c) var(--block-size)
+          );
+      }
+      .block {
+        position: absolute;
+        margin-top: -2px;
+        width: var(--block-size);
+        height: var(--block-size);
+        background-color: palegreen;
+        transition:
+          transform calc(var(--speed) * 2) linear,
+          top var(--speed) linear,
+          left var(--speed) linear;
+        border-radius: 30%;
+        border-bottom: calc(var(--block-size) * 0.1) solid forestgreen;
+        border-top: calc(var(--block-size) * 0.1) solid forestgreen;
+      }
+      .block.head {
+        border-radius: 25% 40% 40% 25%;
+        transition:
+          transform var(--speed) linear,
+          top var(--speed) linear,
+          left var(--speed) linear;
+      }
+      /* The eyes */
+      .block.head::after,.block.head::before {
+        content: " ";
+        display: block;
+        width: calc(var(--block-size) * 0.35);
+        height: calc(var(--block-size) * 0.35);
+        margin-left: calc(var(--block-size) * 0.5);
+        margin-top: calc(var(--block-size) * 0.1);
+        border-radius: 50%;
+        background-color: black;
+      }
+      .food {
+        position: absolute;
+        width: var(--block-size);
+        height: var(--block-size);
+        background-color: red;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="game-over">SNAKE OVER!</h1>
+    <div class="field">
+      <p class="score-text">
+        Score: <span class="score-number">0</span>
+      </p>
+      <div
+        class="block tail"
+        data-pos-x="0"
+        data-pos-y="0"
+        data-speed-x="1"
+        data-speed-y="0"
+        data-rotation="0">
+      </div>
+      <div
+        class="block"
+        data-pos-x="1"
+        data-pos-y="0"
+        data-speed-x="1"
+        data-speed-y="0"
+        data-rotation="0">
+      </div>
+      <div
+        class="block head"
+        data-pos-x="2"
+        data-pos-y="0"
+        data-speed-x="1"
+        data-speed-y="0"
+        data-rotation="0">
+      </div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        function getCSSVariable(varName) {
+          return getComputedStyle(document.documentElement).getPropertyValue(varName)
+        }
+        function closestAngle(block1, block2) {
+          const x1 = block1.dataset.speedX, y1 = block1.dataset.speedY;
+          const x2 = block2.dataset.speedX, y2 = block2.dataset.speedY;
+          let a, b;
+          if (x1 == 1  && y1 ==  0) { a = 1 } else
+          if (x1 == 0  && y1 ==  1) { a = 2 } else
+          if (x1 == -1 && y1 ==  0) { a = 3 } else
+          if (x1 == 0  && y1 == -1) { a = 4 }
+
+          if (x2 == 1  && y2 ==  0) { b = 1 } else
+          if (x2 == 0  && y2 ==  1) { b = 2 } else
+          if (x2 == -1 && y2 ==  0) { b = 3 } else
+          if (x2 == 0  && y2 == -1) { b = 4 }
+
+          if (a - b == 1 || a - b == -3) {
+            return -90
+          } else if (a - b == -1 || a - b == 3) {
+            return 90
+          } else if (a == b) {
+            return 0
+          } else {
+            return 180
+          }
+        }
+        function getRandomInt(min, max) {
+          return Math.floor(Math.random() * (max - min)) + min;
+        }
+        // Variables
+        const head = document.querySelector('.head');
+        const blockSize = parseInt(getCSSVariable('--block-size'));
+        const fieldX = parseInt(getCSSVariable('--field-x'));
+        const fieldY = parseInt(getCSSVariable('--field-y'));
+        const speedStr = getCSSVariable('--speed');
+        const speed = parseInt(speedStr.slice(0, speedStr.length - 2));
+        let turning = 0;
+        let score = 0;
+        // Functions
+        function placeFood() {
+          let underBlock = false;
+          let foodX = getRandomInt(0, fieldX);
+          let foodY = getRandomInt(0, fieldY);
+          const food = document.createElement('div');
+          food.dataset.posX = foodX;
+          food.dataset.posY = foodY;
+          food.classList.add('food');
+          head.parentNode.insertBefore(food, document.querySelector('.tail'));
+        }
+        function updatePosition() {
+          document.querySelectorAll('.block').forEach((block) => {
+            block.style.transform = 'rotate(' + block.dataset.rotation + 'deg)';
+            block.style.left = parseInt(block.dataset.posX) * blockSize + 'px';
+            block.style.top = parseInt(block.dataset.posY) * blockSize + 'px';
+          })
+          document.querySelectorAll('.food').forEach((food) => {
+            food.style.left = parseInt(food.dataset.posX) * blockSize + 'px';
+            food.style.top = parseInt(food.dataset.posY) * blockSize + 'px';
+          })
+          document.querySelector('.score-number').innerHTML = score;
+        }
+        function moveOneStep() {
+          head.dataset.rotation = parseInt(head.dataset.rotation) - closestAngle(head, head.previousElementSibling);
+          document.querySelectorAll('.block:not(.head)').forEach((block) => {
+            block.dataset.posX = block.nextElementSibling.dataset.posX;
+            block.dataset.posY = block.nextElementSibling.dataset.posY;
+            block.dataset.rotation = parseInt(block.dataset.rotation) + closestAngle(block, block.nextElementSibling);
+            block.dataset.speedX = block.nextElementSibling.dataset.speedX;
+            block.dataset.speedY = block.nextElementSibling.dataset.speedY;
+          });
+          head.dataset.posX = parseInt(head.dataset.posX) + parseInt(head.dataset.speedX);
+          head.dataset.posY = parseInt(head.dataset.posY) + parseInt(head.dataset.speedY);
+          turning = 0;
+        }
+        function crashedInWall() {
+          return parseInt(head.dataset.posX) < -1
+              || parseInt(head.dataset.posY) < -1
+              || parseInt(head.dataset.posX) > fieldX
+              || parseInt(head.dataset.posY) > fieldY
+        }
+        function crashedInSelf() {
+          let crashed = false;
+          document.querySelectorAll('.block:not(.head)').forEach((block) => {
+            if (head.dataset.posX == block.dataset.posX && head.dataset.posY == block.dataset.posY) {
+              crashed = true;
+            }
+          });
+          return crashed
+        }
+        function eatFood() {
+          document.querySelectorAll('.food').forEach((food) => {
+            if (head.dataset.posX == food.dataset.posX && head.dataset.posY == food.dataset.posY) {
+              food.remove()
+              food.classList.remove('food');
+              food.classList.add('block', 'tail');
+              const tail = document.querySelector('.tail');
+              head.parentNode.insertBefore(food, tail);
+              food.dataset.posX = tail.dataset.posX;
+              food.dataset.posY = tail.dataset.posY;
+              food.dataset.rotation = tail.dataset.rotation;
+              console.log(food.dataset.posX, tail.dataset.posX);
+              tail.classList.remove('tail');
+              score++;
+              placeFood();
+            }
+          })
+        }
+        // Run the game
+        updatePosition();
+        placeFood();
+        var run = setInterval(() => {
+          eatFood();
+          moveOneStep();
+          if (crashedInWall() || crashedInSelf()) {
+            gameOver();
+          } else {
+            updatePosition();
+          }
+        }, speed);
+        // Game over
+        function gameOver() {
+          clearInterval(run);
+          document.querySelector('.game-over').style.display = 'inline';
+        }
+        // Keyboard controls
+        document.addEventListener('keydown', (keyEvent) => {
+          switch (keyEvent.key) {
+            case 'k':
+            case 'ArrowUp':
+              if (head.dataset.speedY != 1 && !turning) {
+                head.dataset.speedX = 0;
+                head.dataset.speedY = -1;
+                turning ++;
+              }
+              break;
+            case 'j':
+            case 'ArrowDown':
+              if (head.dataset.speedY != -1 && !turning) {
+                head.dataset.speedX = 0;
+                head.dataset.speedY = 1;
+                turning ++;
+              }
+              break;
+            case 'h':
+            case 'ArrowLeft':
+              if (head.dataset.speedX != 1 && !turning) {
+                head.dataset.speedX = -1;
+                head.dataset.speedY = 0;
+                turning ++;
+              }
+              break;
+            case 'l':
+            case 'ArrowRight':
+              if (head.dataset.speedX != -1 && !turning) {
+                head.dataset.speedX = 1;
+                head.dataset.speedY = 0;
+                turning ++;
+              }
+              break;
+          }
+        })
+      })
+    </script>
+  </body>
+</html>
