@@ -7,7 +7,7 @@
         --block-size: 30px;
         --field-x: 30;
         --field-y: 30;
-        --speed: 90ms;
+        --speed: 80ms;
         --bg-color: midnightblue;
       }
       body {
@@ -262,6 +262,7 @@
         // Keyboard controls
         document.addEventListener('keydown', (keyEvent) => {
           switch (keyEvent.key) {
+            case 'w':
             case 'k':
             case 'ArrowUp':
               if (head.dataset.speedY <= 0 && !turning) {
@@ -270,6 +271,7 @@
                 turning ++;
               }
               break;
+            case 's':
             case 'j':
             case 'ArrowDown':
               if (head.dataset.speedY >= 0 && !turning) {
@@ -278,6 +280,7 @@
                 turning ++;
               }
               break;
+            case 'a':
             case 'h':
             case 'ArrowLeft':
               if (head.dataset.speedX <= 0 && !turning) {
@@ -286,6 +289,7 @@
                 turning ++;
               }
               break;
+            case 'd':
             case 'l':
             case 'ArrowRight':
               if (head.dataset.speedX >= 0 && !turning) {

@@ -5,7 +5,7 @@ pure CSS for styling and vanilla JS for logic.
 
 ## Usage
 
-Use `hjkl` or arrow keys for turning; to restart, reload the page.
+Use the arrow keys, `wasd`, or `hjkl` for turning; to restart, reload the page.
 
 Note that fruit can appear right under the snake.
 
