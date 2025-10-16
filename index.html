@@ -255,7 +255,6 @@
               food.dataset.posX = tail.dataset.posX;
               food.dataset.posY = tail.dataset.posY;
               food.dataset.rotation = tail.dataset.rotation;
-              console.log(food.dataset.posX, tail.dataset.posX);
               tail.classList.remove('tail');
               score++;
               placeFood();
@@ -280,7 +279,6 @@
           document.querySelectorAll('.block:not(.head)').forEach((block) => {
             block.style.transform = 'rotate(' + getComputedAngle(block) + 'deg)';
             block.style.transition = 'none';
-            console.log(block.style.transform);
           });
           clearInterval(run);
           document.querySelector('.game-over').style.display = 'inline';
